@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <input placeholder="Enter Username" id="domato"/>
+        <button onclick="call()">Submit</button>
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+<script>
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjcwNWVhOTIxLTk5NDEtNGMwZC1hMzhkLTZjNzllNzkzMTJmNSIsIm5hbWVpZCI6IjcwNWVhOTIxLTk5NDEtNGMwZC1hMzhkLTZjNzllNzkzMTJmNSIsIm5iZiI6MTczMTY1NDE3OCwiZXhwIjoxNzMyOTUwMTc4LCJpYXQiOjE3MzE2NTQxNzgsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjcwNzAvIiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NzA3MC8ifQ.qBRpbsyLYOlTPL6Fv1bzUk3ygxQ2j9EuKConFylkqkI"    
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("http://127.0.0.1:5115/authenticate", {
+            accessTokenFactory: () => token
+        })
+        .build();
+    connection.start()
+        .then(() => console.log("Connected to the chat hub!"))
+        .catch(err => console.error("Error connecting to chat hub: ", err));
+    function call() {
+        const value = document.getElementById("domato").value
+        connection.invoke("RequestAccess", value).then(function () {
+            console.log("Response sent to server.");
+        })
+        .catch(function (err) {
+            console.error("Error responding to request: ", err);
+        });
+    connection.on("ReceiveUserData", (token) => {
+        console.log(token)
+    })
+    connection.on("RequestDenied", (msg) => {
+        console.log(msg)
+    })
+    }
+</script>
+</html>

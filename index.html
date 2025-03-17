@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button onclick="Test()">Invoke</button>
+    <div id="test">
+
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+<script>
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImIxYzE0YTgzLWI3NjYtNDEwYi1iNjlkLTA3YmY1MzQ4YjQ2MCIsIm5hbWVpZCI6ImIxYzE0YTgzLWI3NjYtNDEwYi1iNjlkLTA3YmY1MzQ4YjQ2MCIsIm5iZiI6MTczMTQwNDkyMiwiZXhwIjoxNzMxNDU4OTIyLCJpYXQiOjE3MzE0MDQ5MjIsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjcwNzAvIiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NzA3MC8ifQ.DAamOcIgqKYyNS_FmI8VjZg6cdJ6mKAflM85MO0i78o"
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("http://127.0.0.1:5152/authenticate", {
+            accessTokenFactory: () => token
+        })
+        .build();
+
+    connection.start().then(
+        () => {
+            console.log("Chat Connected")
+        }
+    ).catch(e => console.log(e))
+    connection.on("ReceiveMessage", (msg) => {
+        const output = document.getElementById("test")
+        output.innerHTML = "";
+
+    // Create a message paragraph
+    const messageParagraph = document.createElement("p");
+    messageParagraph.textContent = msg;
+
+    // Create Approve button
+    const approveButton = document.createElement("button");
+    approveButton.textContent = "Approve";
+    approveButton.onclick = () => {
+        console.log("Approve clicked");
+        connection.invoke("RespondToRequest", "b1c14a83-b766-410b-b69d-07bf5348b460", true);
+    };
+
+    const rejectButton = document.createElement("button");
+    rejectButton.textContent = "Reject";
+    rejectButton.onclick = () => {
+        console.log("Reject clicked");
+        connection.invoke("RespondToRequest", "b1c14a83-b766-410b-b69d-07bf5348b460", false);
+    };
+
+    output.appendChild(messageParagraph);
+    output.appendChild(approveButton);
+    output.appendChild(rejectButton);
+    })
+</script>
+
+</html>

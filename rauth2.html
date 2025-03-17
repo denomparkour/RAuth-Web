@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authenticate</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background-color: #36393f;
+            font-family: 'Helvetica Neue', sans-serif;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .auth-container {
+            background-color: #2f3136;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .profile-container {
+            background-color: #2f3136;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            display: none;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #40444b;
+        }
+
+        .profile-picture {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .profile-picture img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-picture-fallback {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #5865f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .profile-name-email {
+            flex-grow: 1;
+        }
+
+        .profile-username {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            color: #fff;
+        }
+
+        .profile-email {
+            color: #b9bbbe;
+            margin: 4px 0;
+        }
+
+        .profile-info {
+            display: grid;
+            gap: 16px;
+        }
+
+        .info-group {
+            display: grid;
+            gap: 4px;
+        }
+
+        .info-label {
+            color: #b9bbbe;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #fff;
+            font-size: 14px;
+        }
+
+        h2 {
+            color: #fff;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b9bbbe;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            background-color: #40444b;
+            border: 1px solid #202225;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #5865f2;
+        }
+
+        input::placeholder {
+            color: #72767d;
+        }
+
+        #retrieveButton {
+            width: 100%;
+            background-color: #5865f2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #retrieveButton:hover {
+            background-color: #4752c4;
+        }
+
+        #retrieveButton:active {
+            background-color: #3c45a5;
+        }
+
+        #retrieveButton:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 4px;
+            width: calc(100% - 32px);
+            text-align: center;
+            box-sizing: border-box;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .message.success {
+            background-color: #3ba55c;
+            width: 100%;
+        }
+
+        .message.error {
+            background-color: #ed4245;
+            width: 100%;
+        }
+
+        .address-details {
+            background-color: #40444b;
+            padding: 16px;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        .address-details .info-value {
+            padding: 4px 0;
+            border-bottom: 1px solid #2f3136;
+        }
+
+        .address-details .info-value:last-child {
+            border-bottom: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            margin-right: 8px;
+        }
+
+        .button-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Authenticate User</h2>
+        
+        <div class="input-group">
+            <label for="userName">Enter Username:</label>
+            <input type="text" id="userName" name="userName" required placeholder="Username">
+        </div>
+
+        <button id="retrieveButton" onclick="call()">
+            <div class="button-content">
+                <div class="spinner"></div>
+                <span class="button-text">Authenticate</span>
+            </div>
+        </button>
+    </div>
+
+    <div class="profile-container" id="profileContainer">
+        <div class="profile-header">
+            <div class="profile-picture" id="profilePicture">
+            </div>
+            <div class="profile-name-email">
+                <h3 class="profile-username" id="profileUsername"></h3>
+                <p class="profile-email" id="profileEmail"></p>
+            </div>
+        </div>
+        
+        <div class="profile-info">
+            <div class="info-group">
+                <span class="info-label">Phone Number</span>
+                <span class="info-value" id="profilePhone"></span>
+            </div>
+            
+            <div class="info-group">
+                <span class="info-label">Date of Birth</span>
+                <span class="info-value" id="profileDob"></span>
+            </div>
+
+            <div class="info-group">
+                <span class="info-label">Address</span>
+                <div class="address-details">
+                    <div class="info-value" id="profileStreet"></div>
+                    <div class="info-value" id="profileCity"></div>
+                    <div class="info-value" id="profileState"></div>
+                    <div class="info-value" id="profilePostal"></div>
+                    <div class="info-value" id="profileCountry"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const encryptedKey = urlParams.get("auth_token");
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjcwNWVhOTIxLTk5NDEtNGMwZC1hMzhkLTZjNzllNzkzMTJmNSIsIm5hbWVpZCI6IjcwNWVhOTIxLTk5NDEtNGMwZC1hMzhkLTZjNzllNzkzMTJmNSIsIm5iZiI6MTczMTY1NDE3OCwiZXhwIjoxNzMyOTUwMTc4LCJpYXQiOjE3MzE2NTQxNzgsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjcwNzAvIiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6NzA3MC8ifQ.qBRpbsyLYOlTPL6Fv1bzUk3ygxQ2j9EuKConFylkqkI"
+        
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("http://127.0.0.1:5115/authenticate", {
+                accessTokenFactory: () => token
+            })
+            .build();
+
+        connection.start()
+            .then(() => console.log("Connected to the chat hub!"))
+            .catch(err => console.error("Error connecting to chat hub: ", err));
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function getInitials(username) {
+            return username.charAt(0).toUpperCase();
+        }
+
+        function updateProfile(data) {
+            document.getElementById('profileContainer').style.display = 'block';
+            document.getElementById('profileUsername').textContent = data.userName;
+            document.getElementById('profileEmail').textContent = data.email;
+            document.getElementById('profilePhone').textContent = data.phoneNumber || 'Not provided';
+            document.getElementById('profileDob').textContent = formatDate(data.dateOfBirth);
+            
+            const profilePictureContainer = document.getElementById('profilePicture');
+            if (data.profilePicture && data.profilePicture !== 'string') {
+                profilePictureContainer.innerHTML = `<img src="${data.profilePicture}" alt="${data.userName}" />`;
+            } else {
+                profilePictureContainer.innerHTML = `<div class="profile-picture-fallback">${getInitials(data.userName)}</div>`;
+            }
+            
+            document.getElementById('profileStreet').textContent = data.address.street;
+            document.getElementById('profileCity').textContent = data.address.city;
+            document.getElementById('profileState').textContent = data.address.state;
+            document.getElementById('profilePostal').textContent = data.address.postalCode;
+            document.getElementById('profileCountry').textContent = data.address.country;
+        }
+
+        function setLoadingState(isLoading, isComplete = false) {
+            const button = document.getElementById('retrieveButton');
+            const spinner = button.querySelector('.spinner');
+            const buttonText = button.querySelector('.button-text');
+            
+            spinner.style.display = isLoading ? 'block' : 'none';
+            if (isComplete) {
+                button.disabled = true;
+                buttonText.textContent = 'Authenticate';
+            } else {
+                buttonText.textContent = isLoading ? 'Waiting for approval' : 'Send Request';
+            }
+        }
+
+        function call() {
+            const userName = document.getElementById("userName").value;
+            
+            if (!userName) {
+                showMessage("Please enter a username", false);
+                return;
+            }
+
+            if (!encryptedKey) {
+                showMessage("Missing auth_token in URL", false);
+                return;
+            }
+
+            setLoadingState(true);
+
+            setTimeout(() => {
+                connection.invoke("RequestAccess", encryptedKey, userName)
+                    .then(() => {
+                        console.log("Response sent to server.");
+                    })
+                    .catch(function (err) {
+                        console.error("Error responding to request: ", err);
+                        showMessage("Error sending request", false);
+                        setLoadingState(false);
+                    });
+            }, 1500);
+        }
+
+        connection.on("ReceiveUserData", (data) => {
+            console.log(data);
+            updateProfile(data);
+            showMessage(`Welcome back, ${data.userName}!`, true);
+            setLoadingState(false, true);
+        });
+
+        connection.on("RequestDenied", (msg) => {
+            showMessage("Request Rejected!", false);
+            setLoadingState(false);
+        });
+
+        function showMessage(text, isSuccess) {
+            const existingMessages = document.querySelectorAll('.message');
+            existingMessages.forEach(msg => msg.remove());
+
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${isSuccess ? 'success' : 'error'}`;
+            messageDiv.textContent = text;
+            
+            const container = document.querySelector('.auth-container');
+            container.appendChild(messageDiv);
+        }
+    </script>
+</body>
+</html>

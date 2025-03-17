@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAuth Verify</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #36393f;
+            font-family: 'Helvetica Neue', sans-serif;
+        }
+
+        .auth-container {
+            text-align: center;
+        }
+
+        #authButton {
+            background-color: #5865f2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+            min-width: 150px;
+        }
+
+        #authButton:hover {
+            background-color: #4752c4;
+        }
+
+        #authButton:disabled {
+            background-color: #4752c4;
+            cursor: not-allowed;
+        }
+
+        .lock-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Hide elements when loading */
+        #authButton.loading .lock-icon,
+        #authButton.loading .button-text {
+            display: none;
+        }
+
+        #authButton.loading .spinner {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <button id="authButton">
+            <span class="button-text">RAuth</span>
+            <div class="spinner"></div>
+            <svg class="lock-icon" viewBox="0 0 24 24">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        document.getElementById("authButton").addEventListener("click", async function() {
+            const button = this;
+            const buttonText = button.querySelector('.button-text');
+            
+            // Disable button and show loading state
+            button.disabled = true;
+            button.classList.add('loading');
+            buttonText.textContent = 'Authenticating...';
+            
+            var client_id = "705ea921-9941-4c0d-a38d-6c79e79312f5";
+            var client_secret = "xJ0Z8x+NLQ8E5kxLGtt7S27OSIc23+2bsBjmUmb8cIA=";
+
+            var payload = {
+                clientId: client_id,
+                clientSecret: client_secret
+            };
+
+            // Add delay before making the request
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            try {
+                const response = await fetch("http://localhost:5115/rauth/verify", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.status === "Success" && data.payload) {
+                    var auth_payload = data.payload;
+                    var url = "rauth2.html?auth_token=" + encodeURIComponent(auth_payload);
+                    window.location.href = url;
+                } else {
+                    alert("Error: Authentication failed or invalid status.");
+                    // Reset button state
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                    buttonText.textContent = 'RAuth';
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("There was an error with the request.");
+                // Reset button state
+                button.disabled = false;
+                button.classList.remove('loading');
+                buttonText.textContent = 'RAuth';
+            }
+        });
+    </script>
+</body>
+</html>
